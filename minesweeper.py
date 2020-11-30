@@ -17,15 +17,11 @@ class minesweeper():
             self.mark(x, y)
 
     def mark(self, x, y):
-        self.board[x+1][y] += 1
-        self.board[x][y+1] += 1
-        self.board[x-1][y] += 1
-        self.board[x][y-1] += 1
-        self.board[x+1][y+1] += 1
-        self.board[x+1][y-1] += 1
-        self.board[x-1][y+1] += 1
-        self.board[x-1][y-1] += 1
-
+        for i in range(x-1, x+2):
+          for j in range(y-1, y+2):
+            if (i >= 0 and j >= 0):
+              self.board[i][j] += 1
+        
     def print(self):
         # print top index
         c = 'a'
@@ -56,17 +52,28 @@ class minesweeper():
                 else:
                     print('·', end=' ')
             print()
-    
-    def convert(self, loc):
-        loc = loc.lower()
-        # error handling blm
-        y = ord(loc[0]) - 97
-        x = int(loc[1])
-        return x, y
 
     def flag(self, x, y):
         self.flagged.append((x, y))
         return x, y
+
+    def proberec(self, x, y):
+        new = []
+        if (x > self.size - 1) or (y > self.size - 1) or (x < 0) or (y < 0):
+            return []
+        elif (x, y) in self.probed:
+            return  []
+        elif (self.board[x][y] > 0):
+            self.probed += [(x, y)]
+            return [(x,y)]
+        else:
+            new = new + [(x, y)]
+            self.probed +=[(x, y)]
+            new = new + self.proberec(x+1, y)
+            new = new + self.proberec(x, y+1)
+            new = new + self.proberec(x-1, y)
+            new = new + self.proberec(x, y-1)
+            return new
 
     def probe(self, x, y):
         if (x, y) in self.probed or (x, y) in self.flagged:
@@ -76,27 +83,9 @@ class minesweeper():
             self.losing = True
             raise Exception("You lose :)")
         
-        arr = []
-        new = self.proberec(x, y, arr)
+        new = self.proberec(x, y)
         return new
-
-    def proberec(self, x, y, new):
-        if (x > self.size - 1) or (y > self.size - 1) or (x < 0) or (y < 0):
-            return
-        elif (x, y) in self.probed:
-            return
-        elif (self.board[x][y] != 0):
-            new.append((x, y))
-            self.probed.append((x, y))
-            return new
-        else:
-            new.append((x, y))
-            self.probed.append((x, y))
-            self.proberec(x+1, y, new)
-            self.proberec(x, y+1, new)
-            self.proberec(x-1, y, new)
-            self.proberec(x, y-1, new)
-
+        
     def checkwin(self):
         for i in range(self.size):
             for j in range(self.size):
